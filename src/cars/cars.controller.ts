@@ -2,6 +2,7 @@ import { Controller, Get, HttpCode, Post, Param, Body, Put, Delete, ParseUUIDPip
 import { CarsService } from './cars.service';
 import { CreateCarDto } from './dto/create-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
+import { Car } from './interface/car.interface';
 
 @Controller('cars')
 //@UsePipes(ValidationPipe)
