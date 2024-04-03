@@ -4,4 +4,9 @@ export class CreateBrandDto {
     @IsString()
     @Length(3, 50)
     readonly name: string;
+
+    readonly description: string;
+
+    readonly slug: string;
+
 }
