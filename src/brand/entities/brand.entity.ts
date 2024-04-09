@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Brand {
@@ -21,4 +21,12 @@ export class Brand {
             {nullable: false, default: () => 'CURRENT_TIMESTAMP'})
     createdAt: number;
 
+    @BeforeInsert()
+    checkSlug(): void {
+        if (!this.slug) {
+            this.slug = this.name;
+        }
+
+        this.slug = this.slug.toLowerCase().replace(/ /g, '-');
+    }
 }

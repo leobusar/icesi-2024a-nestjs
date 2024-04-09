@@ -1,15 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import {v4 as uuid} from  'uuid';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import {v4 as uuid, validate as isUUID} from  'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { Brand } from './entities/brand.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @Injectable()
 export class BrandService {
 
-  private brands : Brand[] = [];
+  private readonly logger = new Logger('ProductsService');
 
   constructor(
     @InjectRepository(Brand) 
@@ -18,52 +20,84 @@ export class BrandService {
 
   }
 
-  create(createBrandDto: CreateBrandDto) {
+  async create(createBrandDto: CreateBrandDto) {
 
-    const {name} = createBrandDto;
-    const brand: Brand =  {
-      name,
-      id: uuid(),
-      description: '',
-      slug: name.toLowerCase().replace(' ', '-'),
-      createdAt:  new Date().getTime()
-    }
-    this.brands.push(brand);
+    const brand = this.brandRepository.create(createBrandDto);
+
+    await this.brandRepository.save(brand);
     
     return brand;
    }
 
-  findAll() {
-    return this.brands;
+  findAll( paginationDto: PaginationDto ) {
+
+    const { limit = 10, offset = 0 } = paginationDto;
+
+    return this.brandRepository.find({
+      take: limit,
+      skip: offset,
+      // TODO: relaciones
+    })
   }
 
-  findOne(id: string) {
-    const   brand = this.brands.find(brand => brand.id === id);
-    if(!brand){
-      throw new Error(`Brand with id ${id} not found`);
+  async findOne( term: string ) {
+
+    let brand: Brand;
+
+    if ( isUUID(term) ) {
+      brand = await this.brandRepository.findOneBy({ id: term });
+    } else {
+      const queryBuilder = this.brandRepository.createQueryBuilder(); 
+      brand = await queryBuilder
+        .where('UPPER(name) =:brand or slug =:slug', {
+          brand: term.toUpperCase(),
+          slug: term.toLowerCase(),
+        }).getOne();
     }
+
+    if ( !brand ) 
+      throw new NotFoundException(`Brand with ${ term } not found`);
+
     return brand;
   }
 
-  update(id: string, updateBrandDto: UpdateBrandDto) {
-    
-    let brandDB = this.findOne(id);
 
-    this.brands = this.brands.map(brand => {
-      if(brand.id === id){
-        brand = {...brand, ...updateBrandDto};
-      }
-      return brand;
+  async update(id: string, updateBrandDto: UpdateBrandDto) {
+    const brand = await this.brandRepository.preload({
+      id: id,
+      ...updateBrandDto
     });
+
+    if ( !brand ) throw new NotFoundException(`Brand with id: ${ id } not found`);
+
+    try {
+      await this.brandRepository.save( brand );
+      return brand;
+      
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+   
+  }
+
+  async remove(id: string) {
+    const product = await this.findOne( id );
+    await this.brandRepository.remove( product );
+  }
+
+  // fillBrandsWithSeedData(brands: Brand[]): void {
+  //   this.brands = brands;
+  // }
+
+  private handleDBExceptions( error: any ) {
+
+    if ( error.code === '23505' )
+      throw new BadRequestException(error.detail);
     
+    this.logger.error(error)
+    // console.log(error)
+    throw new InternalServerErrorException('Unexpected error, check server logs');
+
   }
 
-  remove(id: string) {
-    let brand = this.findOne(id);
-    this.brands = this.brands.filter(brand => brand.id !== id); 
-  }
-
-  fillBrandsWithSeedData(brands: Brand[]): void {
-    this.brands = brands;
-  }
 }

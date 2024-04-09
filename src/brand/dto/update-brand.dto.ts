@@ -5,6 +5,5 @@ import { IsOptional, IsString, IsUUID } from 'class-validator';
 export class UpdateBrandDto extends PartialType(CreateBrandDto) {
     @IsString()
     @IsOptional()
-    @IsUUID()
     readonly id?: string;
 }
