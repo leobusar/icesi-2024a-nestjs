@@ -6,6 +6,7 @@ import { BrandModule } from './brand/brand.module';
 import { SeedModule } from './seed/seed.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     CarsModule, 
     BrandModule, 
-    SeedModule],
+    SeedModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })

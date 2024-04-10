@@ -1,4 +1,5 @@
-import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { User } from "src/auth/entities/user.entity";
+import { BeforeInsert, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Brand {
@@ -20,6 +21,13 @@ export class Brand {
     @Column('timestamp', 
             {nullable: false, default: () => 'CURRENT_TIMESTAMP'})
     createdAt: number;
+
+//     @ManyToOne(
+//         () => User,
+//         ( user ) => user.brand,
+//         { eager: true }
+//     )
+//     user: User; 
 
     @BeforeInsert()
     checkSlug(): void {
