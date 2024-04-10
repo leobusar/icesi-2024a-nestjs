@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-//import { JwtService } from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity';
@@ -12,7 +12,7 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-//    private readonly jwtService: JwtService,
+    private readonly jwtService: JwtService,
 
   ) {}
 
@@ -31,9 +31,8 @@ export class AuthService {
 
       return {
         ...user,
-//        token: this.jwtService.sign({ id: user.id })
+        token: this.jwtService.sign({ id: user.id })
       };
-      // TODO: Retornar el JWT de acceso
 
     } catch (error) {
       this.handleDBErrors(error);
@@ -58,7 +57,7 @@ export class AuthService {
 
     return {
       ...user,
-      //token: this.getJwtToken({ id: user.id })
+      token: this.jwtService.sign({ id: user.id })
     };
   }
 
@@ -70,6 +69,8 @@ export class AuthService {
   //   };
 
   // }
+
+  
 
   private handleDBErrors( error: any ): never {
 
