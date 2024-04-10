@@ -22,11 +22,15 @@ export class BrandService {
 
   async create(createBrandDto: CreateBrandDto) {
 
-    const brand = this.brandRepository.create(createBrandDto);
+    try{
+      const brand = this.brandRepository.create(createBrandDto);
 
-    await this.brandRepository.save(brand);
-    
-    return brand;
+      await this.brandRepository.save(brand);
+      
+      return brand;
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
    }
 
   findAll( paginationDto: PaginationDto ) {

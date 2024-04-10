@@ -28,7 +28,6 @@ export class AuthService {
       });
 
       await this.userRepository.save( user )
-      delete user.password;
 
       return {
         ...user,
